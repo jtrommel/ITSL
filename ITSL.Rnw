@@ -93,7 +93,8 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
 
 \section{Overview of Statistical Learning}
 
-\subsection{Wage Data}
+\subsection{A regression problem: Wage Data}
+Continuous reponse variable (wage) with three independent variables: age (continous), year (discrete integer), education level (factor). A \emph{regression} problem. The graphs show a non-linear relationship with ''age", a linear relation with ''year"  and a dependence on the factor ''education level". But all variables show a lot of variation.
 <<label=1Wage,fig=TRUE,include=FALSE, echo=FALSE>>=
 p1 <- ggplot(data=Wage, aes(x = age, y = wage)) +
   geom_point(alpha=0.1) +
@@ -114,11 +115,63 @@ p3 <- ggplot(data=Wage, aes(x = education, y = wage)) +
 grid.arrange(p1, p2, p3, nrow=1)
 @
 
+\begin{figure}
+\includegraphics[width=0.85\textwidth]{ITSL-1Wage}
+\caption{Relations between Wage and main predictors}
+\label{fig:1Wage}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+\subsection{A classification problem: Stock Market Data}
+A categorical reponse variable (increase of decrease of the index) with independent variable: the x days' percentage changes of the index (x=1, 2, 3). A \emph{classification} problem. 
+
+<<label=1Smarket,fig=TRUE,include=FALSE, echo=FALSE>>=
+p1 <- ggplot(data=Smarket) +
+  geom_boxplot(aes(x=Direction, y= Lag1, colour=Direction)) +
+   theme(legend.position="none") +
+  labs(title="Yesterday", x="Today's Direction", y="Percentage change in S&P") +
+  JT.theme
+p2 <- ggplot(data=Smarket) +
+  geom_boxplot(aes(x=Direction, y= Lag2, colour=Direction)) +
+   theme(legend.position="none") +
+  labs(title="Two Days Previous", x="Today's Direction", y="Percentage change in S&P") +
+  JT.theme
+p3 <- ggplot(data=Smarket) +
+  geom_boxplot(aes(x=Direction, y= Lag3, colour=Direction)) +
+   theme(legend.position="none") +
+  labs(title="Three Days Previous", x="Today's Direction", y="Percentage change in S&P") +
+  JT.theme
+grid.arrange(p1, p2, p3, nrow=1)
+@
 
 \begin{figure}
-\includegraphics[width=1\textwidth]{ITSL-1Wage}
-\caption{Relations between Wage and main predictors}
-\label{fig:ROC1}
+\includegraphics[width=1\textwidth]{ITSL-1Smarket}
+\caption{Classification based on previous change}
+\label{fig:1Smarket}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+\subsection{A clustering problem: Gene Expression Data (NCI60)}
+Only input variables. We are not trying to predict an outcome but are looking for similarities. 
+
+<<label=1NCI60,fig=TRUE,include=FALSE, echo=FALSE>>=
+nci.labs <- NCI60$labs
+nci.data <- NCI60$data
+table(nci.labs)
+pr.out <- prcomp(nci.data, scale=TRUE)
+Cols = function(vec) {
+  cols <- rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])
+}
+par(mfrow=c(1,2))
+plot(pr.out$x[,1:2], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z2")
+plot(pr.out$x[,c(1,3)], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z3")
+@
+
+\begin{figure}
+\includegraphics[width=1\textwidth]{ITSL-1NCI60}
+\caption{Clustering based on principal component analysis}
+\label{fig:1NCI60}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{figure}
 

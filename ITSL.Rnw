@@ -16,6 +16,7 @@
 \usepackage{xspace}
 \usepackage{hyperref}
 \usepackage{amsmath}
+\usepackage{xcolor}
 
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
 
@@ -63,6 +64,7 @@ library(tidyverse)
 library(broom)
 library(ISLR)
 library(gridExtra)
+library(plot3D)
 @
 
 % Setting the ggplot theme:
@@ -166,6 +168,7 @@ Cols = function(vec) {
 par(mfrow=c(1,2))
 plot(pr.out$x[,1:2], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z2")
 plot(pr.out$x[,c(1,3)], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z3")
+par(mfrow=c(1,1))
 @
 
 \begin{figure}
@@ -174,6 +177,146 @@ plot(pr.out$x[,c(1,3)], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z3")
 \label{fig:1NCI60}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{figure}
+
+\chapter{Statistical Learning}
+
+\section{What is statistical learning}
+
+In general: A \emph{response}, \emph{dependent}, \emph{output} variable $Y$ is influenced by a number of \emph{predictor}, \emph{independent}, \emph{input} variables $X_{i}$. We \emph{assume} that the relationschip between $Y$ and the $X_{i}$ can be written as:
+\begin{equation}
+Y=f(X_{i}) + \epsilon
+\end{equation}
+
+where $f(X_{i})$ is an, unknown, but fixed function and $\epsilon$ is a random error term. The function $f(X_{i})$ represent the \emph{systematic information} that the variables $X_{i}$ give about $Y$.
+
+<<echo=FALSE>>=
+# Loading the Advertising data
+Advertising <- read.csv("data/Advertising.csv", header=TRUE, sep=",")
+@
+
+<<label=2Advertising,fig=TRUE,include=FALSE, echo=FALSE>>=
+# Making the graphs
+ggplot(data=Advertising, aes(x=TV, y= sales)) +
+  geom_point(shape=21, color="Red") +
+  geom_smooth(method=lm, se=FALSE) +
+  JT.theme -> p1
+ggplot(data=Advertising, aes(x=radio, y= sales)) +
+  geom_point(shape=21, color="Red") +
+  geom_smooth(method=lm, se=FALSE) +
+  JT.theme -> p2
+ggplot(data=Advertising, aes(x=newspaper, y= sales)) +
+  geom_point(shape=21, color="Red") +
+  geom_smooth(method=lm, se=FALSE) +
+  JT.theme -> p3
+grid.arrange(p1, p2, p3, nrow=1)
+@
+
+\begin{marginfigure}[-5cm]
+\includegraphics[width=1\textwidth]{ITSL-2Advertising}
+\caption{The \textcolor{red}{Advertising} data set. The plot displays \textbf{sales} as a function of the advertising budget (in thousands of dollars) for adds on TV, radio and in newspapers}
+\label{fig:2Advertising}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+In the \textcolor{red}{\textbf{Advertising}} data set, sales ($Y$) are influenced by the amount we spend on advertising in TV ($X_{1}$), on the radio ($X_{2}$) and in the newspapers ($X_{3}$). Figure~\ref{fig:2Advertising} shows simple least squares fits of the dependent variable $Y$ to the variables $X_{1}$, $X_{2}$ and $X_{3}$.
+
+<<echo=FALSE>>=
+# Loading Income1 data set
+Income1 <- read.csv("data/Income1.csv", header=TRUE, sep=",")
+# Guessing a 3th degree polynomial with (from the graph) a value of about 20 for ''years of education"=10, a value of 80 for ''years of education=22, an first derivatives zero at start and end
+Income1$f <- 214.44 -45.83*Income1$Education +3.333*(Income1$Education)^2 -0.0694*(Income1$Education)^3
+@
+
+The functional relationship is not necessary linear. Figure~\ref{fig:2Income1} gives an example where \textit{Income} is related to \textit{Years of education}.
+
+<<label=2Income1,fig=TRUE,include=FALSE, echo=FALSE>>=
+# Making the graphs
+ggplot(data=Income1, aes(x=Education, y= Income)) +
+  geom_point(shape=21, color="Red") +
+  JT.theme -> p1
+ggplot(data=Income1, aes(x=Education)) +
+  geom_point(aes(y = Income), shape=21, color="Red") +
+  geom_line(aes(y =f), color="Black") +
+  geom_segment(aes(x=Education, y=Income, xend=Education, yend=f)) +
+  JT.theme -> p2
+grid.arrange(p1, p2, nrow=1)
+@
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{ITSL-2Income1}
+\caption{The \textcolor{red}{Income} data set. The plot displays \textbf{Income} as a function of the number of years of education. The right hand side gives a model and the error for each observation}
+\label{fig:2Income1}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+When we include a second independent variable $X_{2}=Seniority$ we can still give a graphical representation in a threedimensional plot (Figure~\ref{fig:2Income2}).
+
+<<echo=FALSE>>=
+# Loading Income2 data set
+Income2 <- read.csv("data/Income2.csv", header=TRUE, sep=",")
+x <- Income2$Education
+y <- Income2$Seniority
+z <- Income2$Income
+@
+
+<<label=2Income2,fig=TRUE,include=FALSE, echo=FALSE>>=
+xyz.fit <- lm(z ~ x + y)
+x.pred <- seq(min(x), max(x), length.out = 50)
+y.pred <- seq(min(y), max(y), length.out = 50)
+xy <- expand.grid(x = x.pred, y = y.pred)
+z.pred <- matrix(predict(xyz.fit, newdata = xy), 
+                 nrow = 50, ncol = 50)
+fitpoints <- predict(xyz.fit)
+scatter3D(x, y, z, 
+          bt = "b2", # box type
+          pch = 21, cex = 0.7, col="red", # shape, size , color of data points
+          theta = 25, phi = 20, # viewing angel horiz and vert
+          ticktype = "detailed", # detailed ticks on axis
+          xlab = "Education", # label x-axis
+          ylab = "Seniority", # label y-axis
+          zlab = "Income",  # label z-axis
+          surf = list(x = x.pred, y = y.pred, z = z.pred,  # coordinates of surface
+                      facets = FALSE, # coloring of the surface facets
+                      fit=fitpoints, # drax line from surface to data point
+                      col=gg.col(1,0.5)), # color pattern (1 = only one color) and alpha value
+          main = "", # main title
+          colkey = FALSE) # no legend
+@
+
+\begin{figure}
+\includegraphics[width=0.7\textwidth]{ITSL-2Income2}
+\caption{The \textcolor{red}{Income} data set. The 3D-plot displays \textbf{Income} as a function of the number of years of education and seniority.}
+\label{fig:2Income2}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+\subsection{Why estimate the function $f$?}
+
+Once the function $f$ is known we can use it to predict values of the dependent variable $Y$ for given values of the independent variables $X_{i}$ (as long as we stay within the range of $X_{i}$-values for which $f$ is derived!).
+
+\begin{equation}
+  \hat{Y}=\hat{f}(X_{i})
+\end{equation}
+
+Usually we do not know $f$ exactly, but an approximation of $f$ which we call $\hat{f}$. The accuracy of $\hat{Y}$ depends on two quantities:
+
+\begin{enumerate}
+  \item the \emph{reducible} error: this is the error that can be minimised when $\hat{f}$ comes closer to $f$
+  \item the \emph{irreducible} error: this is the unknown $\epsilon$ due to unmeasured variables or unknown variables
+\end{enumerate}
+
+\newthought{For Prediction} purposes we are not really interested in the actual mathematical form of $\hat{f}$, but only in its usefulness to predict the output $Y$. Essentially: $\hat{f}$ is treated like a \emph{black box}.
+
+\newthought{For Inference} we do want to know the mathematical nature of $\hat{f}$ because we want a better understanding of the model:
+\begin{itemize}
+  \item which predictors are important?
+  \item what is the relationship between the response variable and each of the predictors? Does it increase or decrease?
+  \item can the relationship be expressed in a linear way or do we need something more complex?
+\end{itemize}
+
+Functions that give more accurate predictions can become opaque and the relation between the dependent variable and the predictors cannot be felt intuitively any more.
+
+\subsection{How to estimate $f$?}
 
 \newpage
 \textbf{Thanks} \\

@@ -341,7 +341,7 @@ The methods to find $\hat{f}$ are either \emph{parametric} or \emph{non-parametr
 
 The advantage of the parametric approach is that it is simple to do. The disadvantage is that the result can be markedly different from reality. Adding more and more parametes can improve the model, but it leads to \emph{overfitting} which makes the model follow the \emph{noise} instead of the signal.
 
-Figure~\ref{fig:2Income2} assumes a linear relation of Income with Education and Seniority. But it does not have the curvature that seems to be in the data. A non-linear function might do better.
+Figure~\ref{fig:2Income2par} assumes a linear relation of Income with Education and Seniority. But it does not have the curvature that seems to be in the data. A non-linear function might do better.
 
 <<label=2Income2par,fig=TRUE,include=FALSE, echo=FALSE>>=
 scatter3D(x, y, z, 
@@ -360,12 +360,12 @@ scatter3D(x, y, z,
           colkey = FALSE) # no legend
 @
 
-\begin{figure}
-\includegraphics[width=0.7\textwidth]{ITSL-2Income2par}
+\begin{marginfigure}[-7cm]
+\includegraphics[width=1\textwidth]{ITSL-2Income2par}
 \caption{The \textcolor{red}{Income} data set. The 3D-plot displays \textbf{Income} as a function of the number of years of education and seniority.}
 \label{fig:2Income2par}
 \setfloatalignment{b}% forces caption to be bottom-aligned
-\end{figure}
+\end{marginfigure}
 
 \newthought{Non-parametric models} do not make any assumption about the mathematical form of $f$. \emph{splines} are an example of a non-parametric solution. It does not impose a pre-specified model on $f$. On the other hand: it does not supply any symbolic representation of $f$ either. Making the spline smoother and smoother will in the end give us a perfect fit with the observations, but also with the noise ($\epsilon$) that is always present. This is overfitting.
 
@@ -403,12 +403,12 @@ scatter3D(x, y, z,
           colkey = FALSE) # no legend
 @
 
-\begin{figure}
-\includegraphics[width=0.7\textwidth]{ITSL-2Income2nonpar}
+\begin{marginfigure}[-5cm]
+\includegraphics[width=1\textwidth]{ITSL-2Income2nonpar}
 \caption{The \textcolor{red}{Income} data set. The 3D-plot displays \textbf{Income} as a spline surfact based on the number of years of education and seniority.}
 \label{fig:2Income2nonpar}
 \setfloatalignment{b}% forces caption to be bottom-aligned
-\end{figure}
+\end{marginfigure}
 
 Using the non-parametric methods requires a good understanding of the way splines are calculated. The choice of the spline characteristics can easily lead to under- or overfitting (Figure~\ref{fig:2Income2under} and Figure~\ref{fig:2Income2over}).
 
@@ -466,19 +466,47 @@ scatter3D(x, y, z,
           colkey = FALSE) # no legend
 @
 
-\begin{figure}
-\includegraphics[width=0.7\textwidth]{ITSL-2Income2under}
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{ITSL-2Income2under}
 \caption{The \textcolor{red}{Income} data set. Effects of underfitting}
 \label{fig:2Income2under}
 \setfloatalignment{b}% forces caption to be bottom-aligned
-\end{figure}
+\end{marginfigure}
 
-\begin{figure}
-\includegraphics[width=0.7\textwidth]{ITSL-2Income2over}
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{ITSL-2Income2over}
 \caption{The \textcolor{red}{Income} data set. Effects of overfitting}
 \label{fig:2Income2over}
 \setfloatalignment{b}% forces caption to be bottom-aligned
-\end{figure}
+\end{marginfigure}
+
+\subsection{Trade-off between Prediction Accuracy and Model Interpretability}
+
+Some functions are \emph{restrictive} (for example the linear regression models) while others are more \emph{flexible}. There is an inverse relationship between \emph{flexibility} and \emph{interpretability}. \emph{Interpretability} is a measure of the insight the function $f$ gives us into the relationships between the \emph{output variable} and the \emph{predictor variables}. When our goal is \emph{Prediction} than we should opt for \emph{flexibility}. When we choose \emph{Inference} we should go for \emph{restriction}. Figure~\ref{fig:2tradeoff} gives an overview of frequently used methods and their position in the (Flexibility - Interpretability)-plane.
+
+<<label=2tradeoff,fig=TRUE,include=FALSE, echo=FALSE>>=
+coords <- data.frame(x=c(2, 3, 4.5, 5.5, 8, 8), y=c(9, 7, 5.5, 5, 2, 1), meth=c("Subset Selection Lasso", "Least Squares", "Generalized Additive Methods", "Trees", "Bagging,Boosting", "Support Vector Machines"), Flexibility=c("Low", "Low", "Middle", "Middle", "High", "High"), Interpretability=c("High", "High", "Middle", "Middle", "Low", "Low"))
+ggplot(data=coords, aes(x=x, y=y, label=meth)) +
+  geom_point() +
+  geom_label(position = position_dodge(0.9)) +
+  labs(title="Tradeoff between Flexibility and Interpretability", 
+       x="Flexibility", 
+       y="Interpretability") +
+  scale_x_continuous(breaks=c(2, 5, 8),
+                   labels=c("Low", "Middle", "High")) +
+  scale_y_continuous(breaks=c(2, 5, 8),
+                   labels=c("Low", "Middle", "High")) +
+  JT.theme
+@
+
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{ITSL-2tradeoff}
+\caption{Interpretability vs. Flexibility}
+\label{fig:2tradeoff}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
 \newpage
 \textbf{Thanks} \\
 \medskip

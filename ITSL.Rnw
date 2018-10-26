@@ -507,6 +507,40 @@ ggplot(data=coords, aes(x=x, y=y, label=meth)) +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
+\subsection{Supervised and Unsupervised Learning}
+
+This must be one of the most unfortunate choices of word to describe what is going on. My intuitive interpretation of these words, before reading about it, was:
+
+\begin{itemize}
+  \item \emph{Supervised}: someone, preferably of the human kind, and preferably of an ethical persusasion, keeps watch, so that the artificial learning process stays under control
+  \item \emph{Unsupervised}: somewhere, in the dark for further drama, a computer (or many) is/are working on their own and turn out incomprehensible algorithms that quickly enslave humankind
+\end{itemize}
+
+\newthought{The real meaning} is:
+
+\begin{itemize}
+  \item \emph{Supervised}: the data set we are working on has input variables $X_{i}$ \textbf{AND} an output variable $Y$. Our model building (prediction- or inference-oriented) is not blind because the output variable acts as a supervisor, giving feedback. Methods such as \emph{linear regression}, \emph{logistic regression}, \emph{Generalized Additive Models (GAMs)}, \emph{boosting}, \emph{Support Vector Machines} are supervised.
+  \item \emph{Unsupervised}: the data set contains only input variables $X_{i}$. We are working blind because we do not have the output variable $Y$ that we can use in a feedback system. What we can do is e.g. try to find groups of data points that have some characteristic(s) in common. Methods include \emph{cluster analysis}. In a situation where we have $p$ independent variables $X_{i}$ working with scatterplots and linear regression becomes unworkable when $p$ becomes large, because we would need to look at $p(p-1)/2$ graphs.
+  \item \emph{Semi-supervised}: a mixture of the above.
+\end{itemize}
+
+\subsection{Regression versus Classification Problems}
+Variables are either \emph{quantitative} or \emph{qualitative, categorical}. \emph{Quantitative} variables have a numerical value, \emph{Qualtitative} variables take the name, or level, of a class.
+
+The important variable to watch is the \emph{dependent} variable $Y$. The type of the \emph{predictor} variables $X_{i}$ is less important. \emph{Quantitative} problems are referred to as \emph{regression} problems, \emph{qualitative} problems as \emph{classification} problems. But the distinction is not absolute: \emph{linear regression} is used with quantitative problems, but \emph{logistic regression} is used with binary qualitative problems, and its result can then be used for classification. \emph{Qualitative} predictor variables can be switched to \emph{qualitative} by proper coding.
+
+\section{Assessing Model Accuracy}
+
+Every data set is different, and so there is not one method that can be applied to all. We therefore need a way to compare the results of different methods in order to decide which is best.
+
+\subsection{Measuring the Quality of Fit}
+
+How well does our model predict the observed data? A measure is the \emph{mean squared error} (MSE):
+
+\begin{equation}
+  MSE = \frac{1}{n}\sum_{i=1}^{i=n} \left(y_{i} - \hat{f}(x_{i})  \right)^{2}
+\end{equation}
+
 \newpage
 \textbf{Thanks} \\
 \medskip

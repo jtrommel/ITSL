@@ -541,6 +541,69 @@ How well does our model predict the observed data? A measure is the \emph{mean s
   MSE = \frac{1}{n}\sum_{i=1}^{i=n} \left(y_{i} - \hat{f}(x_{i})  \right)^{2}
 \end{equation}
 
+Here the distinction between the \emph{training set} and the \emph{test set}: we can get the $MSE$ of the \emph{training set} very low by expanding our model but the real test of its prediction power comes when we apply the model to the \emph{test set}. Moreover: most statistical methods specifically try to minimise the MSE of the training set! So a better measure of qualitiy is the average of the squared errors when we use $\hat{f}$ on the \emph{test set}:
+
+\begin{equation}
+ Ave\left(y_{0} - \hat{f}(x_{0})   \right)^{2}
+\end{equation}
+
+An example: let's start from a univariate function $f(x)$:
+
+\begin{equation}
+  f(x) = 3 + 0.08x  +0.004x^{2} - 0.0001x^{3}
+\end{equaton}
+
+With this function we generate 50 data points, adding a normally distributed error term $\espsilon ~ N(0,1).
+
+<<>>=
+train.df <- data.frame(x=seq(0, 100, by=2), y= 0)
+sig1 <- 1
+set.seed(2018)
+eps.train <- rnorm(51, 0, sig1)
+train.df$y <- 3 + 0.08*train.df$x + 0.0035*train.df$x^2 - 0.00004*train.df$x^3
+train.df$p <- train.df$y + eps.train
+test.df <- data.frame(x=seq(1, 99, by=2), y= 0)
+sig2 <- sig1
+eps.test <- rnorm(50, 0, sig2)
+test.df$y <- 3 + 0.08*test.df$x + 0.0035*test.df$x^2 - 0.00004*test.df$x^3
+test.df$p <- test.df$y + eps.test
+ggplot() +
+  geom_point(data=train.df, aes(x=x, y=p), pch=16, color="black") +
+  geom_line(data=train.df, aes(x=x, y=y), color="black") +
+  geom_smooth(data=train.df, aes(x=x, y=p), method=lm, color="red", se=FALSE) +
+  stat_smooth(data=train.df, aes(x=x, y=p), method="loess", span=0.15, color="green", se=FALSE) +
+  geom_point(data=test.df, aes(x=x, y=p), pch=21, color="blue") +
+  JT.theme
+# test x-values
+new <- data.frame(x=test.df$x)
+# checking the linear model
+mod.lm <- lm(y ~ x, data=train.df)
+pred.lm.train <- predict(mod.lm)
+pred.lm.test <- predict(mod.lm, newdata=new)
+MSEtrain.lm <- mean((train.df$y - pred.lm.train)^2)
+MSEtrain.lm
+MSEtest.lm <- mean((test.df$y - pred.lm.test)^2)
+MSEtest.lm
+# checking the loess model
+mod.loess <- loess(y ~ x, data=train.df, span=0.15)
+pred.loess.train <- predict(mod.loess)
+pred.loess.test <- predict(mod.loess, newdata=new)
+MSEtrain.loess <- mean((train.df$y - pred.loess.train)^2)
+MSEtrain.loess
+MSEtest.loess <- mean((test.df$y - pred.loess.test)^2)
+MSEtest.loess 
+mod.loess <- loess(y ~ x, data=train.df, span=0.5)
+pred.loess.train <- predict(mod.loess)
+pred.loess.test <- predict(mod.loess, newdata=new)
+MSEtrain.loess <- mean((train.df$y - pred.loess.train)^2)
+MSEtrain.loess
+MSEtest.loess <- mean((test.df$y - pred.loess.test)^2)
+MSEtest.loess 
+
+@
+
+where $y_{O}$ is the value of the dependent variable when $x=x_{0}$.
+
 \newpage
 \textbf{Thanks} \\
 \medskip

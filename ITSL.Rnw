@@ -547,62 +547,63 @@ Here the distinction between the \emph{training set} and the \emph{test set}: we
  Ave\left(y_{0} - \hat{f}(x_{0})   \right)^{2}
 \end{equation}
 
+where $y_{O}$ is the value of the dependent variable when $x=x_{0}$ (the \emph{test set}).
+
 An example: let's start from a univariate function $f(x)$:
 
 \begin{equation}
   f(x) = 3 + 0.08x  +0.004x^{2} - 0.0001x^{3}
 \end{equaton}
 
-With this function we generate 50 data points, adding a normally distributed error term $\espsilon ~ N(0,1).
+With this function we generate 100 data points, adding a normally distributed error term $\espsilon ~ N(0,sig). From this data set we sample 75 points for the training set and the rest (25) forms the test set. We use the package \textbf{caret}.
 
 <<>>=
-train.df <- data.frame(x=seq(0, 100, by=2), y= 0)
-sig1 <- 1
+library(caret)
+N <- 101 # number of points
+data.df <- data.frame(x=seq(0, 100, length.out = N), y=0)
+sig <- 1
 set.seed(2018)
-eps.train <- rnorm(51, 0, sig1)
-train.df$y <- 3 + 0.08*train.df$x + 0.0035*train.df$x^2 - 0.00004*train.df$x^3
-train.df$p <- train.df$y + eps.train
-test.df <- data.frame(x=seq(1, 99, by=2), y= 0)
-sig2 <- sig1
-eps.test <- rnorm(50, 0, sig2)
-test.df$y <- 3 + 0.08*test.df$x + 0.0035*test.df$x^2 - 0.00004*test.df$x^3
-test.df$p <- test.df$y + eps.test
+eps <- rnorm(N, 0, sig)
+data.df$y <- 3 + 0.08*data.df$x + 0.0035*data.df$x^2 - 0.00004*data.df$x^3
+data.df$p <- data.df$y + eps
+test.rows <- sample(3:(nrow(data.df)-3), round(N/3, 0), replace=FALSE)
+test.df <- data.df[test.rows, ]
+train.df <- data.df[-test.rows, ]
 ggplot() +
   geom_point(data=train.df, aes(x=x, y=p), pch=16, color="black") +
   geom_line(data=train.df, aes(x=x, y=y), color="black") +
   geom_smooth(data=train.df, aes(x=x, y=p), method=lm, color="red", se=FALSE) +
-  stat_smooth(data=train.df, aes(x=x, y=p), method="loess", span=0.15, color="green", se=FALSE) +
+  stat_smooth(data=train.df, aes(x=x, y=p), method="loess", span=0.25, color="green", se=FALSE) +
   geom_point(data=test.df, aes(x=x, y=p), pch=21, color="blue") +
   JT.theme
 # test x-values
 new <- data.frame(x=test.df$x)
+JT.check <- function(mod, train.p, test.p, new) {
+  MSE.train <- mean((train.p - predict(mod))^2)
+  MSE.test <- mean((test.p - predict(mod, newdata=new))^2)
+  return(c(MSE.train, MSE.test))
+}
 # checking the linear model
-mod.lm <- lm(y ~ x, data=train.df)
-pred.lm.train <- predict(mod.lm)
-pred.lm.test <- predict(mod.lm, newdata=new)
-MSEtrain.lm <- mean((train.df$y - pred.lm.train)^2)
-MSEtrain.lm
-MSEtest.lm <- mean((test.df$y - pred.lm.test)^2)
-MSEtest.lm
-# checking the loess model
-mod.loess <- loess(y ~ x, data=train.df, span=0.15)
-pred.loess.train <- predict(mod.loess)
-pred.loess.test <- predict(mod.loess, newdata=new)
-MSEtrain.loess <- mean((train.df$y - pred.loess.train)^2)
-MSEtrain.loess
-MSEtest.loess <- mean((test.df$y - pred.loess.test)^2)
-MSEtest.loess 
-mod.loess <- loess(y ~ x, data=train.df, span=0.5)
-pred.loess.train <- predict(mod.loess)
-pred.loess.test <- predict(mod.loess, newdata=new)
-MSEtrain.loess <- mean((train.df$y - pred.loess.train)^2)
-MSEtrain.loess
-MSEtest.loess <- mean((test.df$y - pred.loess.test)^2)
-MSEtest.loess 
-
+mod.lm <- lm(p ~ x, data=train.df)
+JT.check(mod.lm,train.df$p, test.df$p, new)
+# checking the loess model for different span widths
+n <- 40
+MSE.loess <- data.frame(span=seq(0.15, 0.85, length.out = n), flex=0, train=0, test=0)
+MSE.loess$flex <- 10^(0.25/MSE.loess$span)
+MSE.loess$log.flex <- log10(MSE.loess$flex)
+for (i in (1:n)) {
+  mod.loess <- loess(p ~ x, data=train.df, span=MSE.loess$span[i], degree = 2)
+  MSE.loess$train[i] <- JT.check(mod.loess, train.df$p, test.df$p, new)[1]
+  MSE.loess$test[i] <- JT.check(mod.loess, train.df$p, test.df$p, new)[2]
+}
+ggplot(data=MSE.loess, aes(x=flex)) +
+  geom_line(aes(y=train), color="grey") +
+  geom_line(aes(y=test), color="red") +
+  scale_x_continuous(trans='log10') +
+  labs(title="MSE as function of flexibility", x="Flexibitlity", y="Mean Squared Error") +
+  JT.theme
 @
 
-where $y_{O}$ is the value of the dependent variable when $x=x_{0}$.
 
 \newpage
 \textbf{Thanks} \\

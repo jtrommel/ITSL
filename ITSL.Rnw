@@ -547,18 +547,17 @@ Here the distinction between the \emph{training set} and the \emph{test set}: we
  Ave\left(y_{0} - \hat{f}(x_{0})   \right)^{2}
 \end{equation}
 
-where $y_{O}$ is the value of the dependent variable when $x=x_{0}$ (the \emph{test set}).
+where $y_{0}$ is the value of the dependent variable when $x=x_{0}$ (the \emph{test set}).
 
 An example: let's start from a univariate function $f(x)$:
 
 \begin{equation}
-  f(x) = 3 + 0.08x  +0.004x^{2} - 0.0001x^{3}
-\end{equaton}
+  f(x) = 3 + 0.08x  + 0.004x^{2} - 0.0001x^{3}
+\end{equation}
 
-With this function we generate 100 data points, adding a normally distributed error term $\espsilon ~ N(0,sig). From this data set we sample 75 points for the training set and the rest (25) forms the test set. We use the package \textbf{caret}.
+With this function we generate 100 data points, adding a normally distributed error term $\epsilon ~ N(0,sig)$. From this data set we sample 2/3 points for the training set and the rest (1/3) forms the test set.
 
-<<>>=
-library(caret)
+<<label=2MSE,fig=TRUE,include=FALSE, echo=FALSE>>=
 N <- 101 # number of points
 data.df <- data.frame(x=seq(0, 100, length.out = N), y=0)
 sig <- 1
@@ -566,15 +565,17 @@ set.seed(2018)
 eps <- rnorm(N, 0, sig)
 data.df$y <- 3 + 0.08*data.df$x + 0.0035*data.df$x^2 - 0.00004*data.df$x^3
 data.df$p <- data.df$y + eps
+# sample the test rows (not the first 3 or the last 3 because these point cause problems when using the loess-model)
 test.rows <- sample(3:(nrow(data.df)-3), round(N/3, 0), replace=FALSE)
 test.df <- data.df[test.rows, ]
 train.df <- data.df[-test.rows, ]
-ggplot() +
+p1 <- ggplot() +
   geom_point(data=train.df, aes(x=x, y=p), pch=16, color="black") +
   geom_line(data=train.df, aes(x=x, y=y), color="black") +
   geom_smooth(data=train.df, aes(x=x, y=p), method=lm, color="red", se=FALSE) +
-  stat_smooth(data=train.df, aes(x=x, y=p), method="loess", span=0.25, color="green", se=FALSE) +
+  stat_smooth(data=train.df, aes(x=x, y=p), method="loess", span=0.15, color="green", se=FALSE) +
   geom_point(data=test.df, aes(x=x, y=p), pch=21, color="blue") +
+  labs(title="train (filled) and test (empty) data points", subtitle="Generating curve (black)\nlinear(red) and loess-model(green)", x="x", y="y") +
   JT.theme
 # test x-values
 new <- data.frame(x=test.df$x)
@@ -583,27 +584,33 @@ JT.check <- function(mod, train.p, test.p, new) {
   MSE.test <- mean((test.p - predict(mod, newdata=new))^2)
   return(c(MSE.train, MSE.test))
 }
-# checking the linear model
-mod.lm <- lm(p ~ x, data=train.df)
-JT.check(mod.lm,train.df$p, test.df$p, new)
 # checking the loess model for different span widths
 n <- 40
 MSE.loess <- data.frame(span=seq(0.15, 0.85, length.out = n), flex=0, train=0, test=0)
-MSE.loess$flex <- 10^(0.25/MSE.loess$span)
-MSE.loess$log.flex <- log10(MSE.loess$flex)
 for (i in (1:n)) {
   mod.loess <- loess(p ~ x, data=train.df, span=MSE.loess$span[i], degree = 2)
   MSE.loess$train[i] <- JT.check(mod.loess, train.df$p, test.df$p, new)[1]
   MSE.loess$test[i] <- JT.check(mod.loess, train.df$p, test.df$p, new)[2]
+  MSE.loess$flex[i] <- mod.loess$enp  # the parameter ''flexibility" is interpreted 
+                                      # as the ''Equivalent Number of Parameters" (enp) in the loess-model
 }
-ggplot(data=MSE.loess, aes(x=flex)) +
+p2 <- ggplot(data=MSE.loess, aes(x=flex)) +
   geom_line(aes(y=train), color="grey") +
   geom_line(aes(y=test), color="red") +
-  scale_x_continuous(trans='log10') +
+  scale_x_continuous(trans='log10', breaks=c(2, 5, 10, 20)) +
+  annotate("text", x=10, y= 0.95, label="Training set", color="black") +
+  annotate("text", x=10, y= 1.15, label="Test set", color="red") +
   labs(title="MSE as function of flexibility", x="Flexibitlity", y="Mean Squared Error") +
   JT.theme
+grid.arrange(p1, p2, nrow=1)
 @
 
+\begin{figure}
+\includegraphics[width=0.75\textwidth]{ITSL-2MSE}
+\caption{Models of different flexibility and MSE of training and test set}
+\label{fig:2MSE}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
 
 \newpage
 \textbf{Thanks} \\

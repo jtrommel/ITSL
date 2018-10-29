@@ -555,7 +555,7 @@ An example: let's start from a univariate function $f(x)$:
   f(x) = 3 + 0.08x  + 0.004x^{2} - 0.0001x^{3}
 \end{equation}
 
-With this function we generate 100 data points, adding a normally distributed error term $\epsilon ~ N(0,sig)$. From this data set we sample 2/3 points for the training set and the rest (1/3) forms the test set.
+With this function we generate 100 data points, adding a normally distributed error term $\epsilon ~ N(0,sig)$. From this data set we sample 2/3 points for the training set and the rest (1/3) forms the test set. The minimum value of $MSE_{test}$ should be $var(\epsilon)$.
 
 <<label=2MSE,fig=TRUE,include=FALSE, echo=FALSE>>=
 N <- 101 # number of points
@@ -597,6 +597,7 @@ for (i in (1:n)) {
 p2 <- ggplot(data=MSE.loess, aes(x=flex)) +
   geom_line(aes(y=train), color="grey") +
   geom_line(aes(y=test), color="red") +
+  geom_hline(yintercept=sig^2, linetype=2, color= "black") +
   scale_x_continuous(trans='log10', breaks=c(2, 5, 10, 20)) +
   annotate("text", x=10, y= 0.95, label="Training set", color="black") +
   annotate("text", x=10, y= 1.15, label="Test set", color="red") +
@@ -604,6 +605,10 @@ p2 <- ggplot(data=MSE.loess, aes(x=flex)) +
   JT.theme
 grid.arrange(p1, p2, nrow=1)
 @
+
+$MSE_{test}$ has a minimum for a flexibility \Sexpr{round(MSE.loess$flex[MSE.loess$test==min(MSE.loess$test)],2)} and a span equal to \Sexpr{round(MSE.loess$span[MSE.loess$test==min(MSE.loess$test)],2)}.
+
+\newthought{It is a general rule} that as model flexibility increases, $MSE_{train}$ will decrease but $MSE_{test}$ may not. When a model gives a low $MSE_{train}$ and a high $MSE_{test}$ we are \emph{overfitting} the data set. Instead of working with the \emph{signal}, the model is incorporating the \emph{noise}. A less flexible model could yield a smaller $MSE_{test}$. Finding the optimum level of \emph{flexibility} is not straightforward because it depends on the availability of a \emph{test set}. This is not always available. An important method to find the optimum is \emph{cross-validation}.
 
 \begin{figure}
 \includegraphics[width=0.75\textwidth]{ITSL-2MSE}

@@ -555,7 +555,7 @@ An example: let's start from a univariate function $f(x)$:
   f(x) = 3 + 0.08x  + 0.004x^{2} - 0.0001x^{3}
 \end{equation}
 
-With this function we generate 100 data points, adding a normally distributed error term $\epsilon ~ N(0,sig)$. From this data set we sample 2/3 points for the training set and the rest (1/3) forms the test set. The minimum value of $MSE_{test}$ should be $var(\epsilon)$.
+With this function we generate 100 data points, adding a normally distributed error term $\epsilon ~ N(0,sig)$. From this data set we sample 2/3 points for the training set and the rest (1/3) forms the test set. The minimum value of $MSE_{test}$ should be $Var(\epsilon)$.
 
 <<label=2MSE,fig=TRUE,include=FALSE, echo=FALSE>>=
 N <- 101 # number of points
@@ -616,6 +616,26 @@ $MSE_{test}$ has a minimum for a flexibility \Sexpr{round(MSE.loess$flex[MSE.loe
 \label{fig:2MSE}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{figure}
+
+\subsection{The Bias-Variance Trade-Off}
+
+The U-shaped form of $MSE_{test}$ is the result of two competing properties of statistical learning methods. It is possible to show that the $MSE$ for a given value of $x_{0}$ can be decomposed in three fundamental quantities:
+\begin{equation}
+  E\left(y_{0} - \hat{f}(x_{0})  \right)^2= Var(\hat{f}(x_{0})) + \left[ Bias(\hat{f}(x_{0}))  \right]^{2} + Var(\epsilon)
+\label{eq:MSEdecomp}
+\end{equation}
+
+where $E\left(y_{0} - \hat{f}(x_{0})  \right)^2$ it the expected value of $MSE_{test}$, which is the average value of $MSE_{test}$ if we were to estimate $f(x)$ for a large number of training sets and calculated the $MSE$ of each function at $x_{0}$. Equation~\ref{eq:MSEdecomp} says that in order to get a minimum value we have to minimise \emph{at the same time} the \emph{Bias} and the \emph{Variance} of $\hat{f}(x_{0})$. Both are inherently positive. We cannot change $Var(\epsilon)$, so $MSE_{test}$ can never go below this value.
+
+The \emph{Bias} of $\hat{f}(x_{0})$ is the result of approximating reality by a (much) simpler model. Using a linear model assumes a linear relation between $Y$ and $X_{i}$, which is unlikely in a real life situation. The assumption of linearity will override measures to improve the model such as increasing the number of observations. Generally, more flexible methods result in less bias.
+
+The \emph{Variance} relates to the change in $\hat{f}$ when we use a different training set. Ideally the estimate for $f(x)$ should not vary much between training sets. Higher flexibility means that $\hat{f}$ follows the training data closely. A different training set will therefore yield a different $\hat{f}$. In general, more flexible methods have higer variance. 
+
+Flexibility will reduce \emph{Bias} but increase \emph{Variance}. This is the \emph{Bias-Variance Trade-Off}, resulting in a U-shape of $MSE_{test}$ with a minimum value (or region).
+
+\subsection{The Classification Setting}
+
+
 
 \newpage
 \textbf{Thanks} \\

@@ -96,7 +96,7 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
 \section{Overview of Statistical Learning}
 
 \subsection{A regression problem: Wage Data}
-Continuous reponse variable (wage) with three independent variables: age (continous), year (discrete integer), education level (factor). A \emph{regression} problem. The graphs show a non-linear relationship with ''age", a linear relation with ''year"  and a dependence on the factor ''education level". But all variables show a lot of variation.
+Continuous reponse variable (wage) with three independent variables: age (continous), year (discrete integer), education level (factor). A \emph{regression} problem\index{regression}. The graphs show a non-linear relationship with ''age", a linear relation with ''year"  and a dependence on the factor ''education level". But all variables show a lot of variation.
 <<label=1Wage,fig=TRUE,include=FALSE, echo=FALSE>>=
 p1 <- ggplot(data=Wage, aes(x = age, y = wage)) +
   geom_point(alpha=0.1) +
@@ -125,7 +125,7 @@ grid.arrange(p1, p2, p3, nrow=1)
 \end{figure}
 
 \subsection{A classification problem: Stock Market Data}
-A categorical reponse variable (increase of decrease of the index) with independent variable: the x days' percentage changes of the index (x=1, 2, 3). A \emph{classification} problem. 
+A categorical reponse variable (increase of decrease of the index) with independent variable: the x days' percentage changes of the index (x=1, 2, 3). A \emph{classification} problem\index{classification}. 
 
 <<label=1Smarket,fig=TRUE,include=FALSE, echo=FALSE>>=
 p1 <- ggplot(data=Smarket) +
@@ -154,7 +154,7 @@ grid.arrange(p1, p2, p3, nrow=1)
 \end{figure}
 
 \subsection{A clustering problem: Gene Expression Data (NCI60)}
-Only input variables. We are not trying to predict an outcome but are looking for similarities. 
+\emph{Clustering}\index{clustering} can be done when we have only input variables. We are not trying to predict an outcome but are looking for similarities. 
 
 <<label=1NCI60,fig=TRUE,include=FALSE, echo=FALSE>>=
 nci.labs <- NCI60$labs
@@ -182,12 +182,12 @@ par(mfrow=c(1,1))
 
 \section{What is statistical learning}
 
-In general: A \emph{response}, \emph{dependent}, \emph{output} variable $Y$ is influenced by a number of \emph{predictor}, \emph{independent}, \emph{input} variables $X_{i}$. We \emph{assume} that the relationschip between $Y$ and the $X_{i}$ can be written as:
+In general: A \emph{response}\index{response variable}, \emph{dependent}\index{dependent variable}, \emph{output}\index{output variable} variable $Y$ is influenced by a number of \emph{predictor}\index{predictor variable}, \emph{independent}\index{independent variable}, \emph{input}\index{input variable} variables $X_{i}$. We \emph{assume} that the relationschip between $Y$ and the $X_{i}$ can be written as:
 \begin{equation}
 Y=f(X_{i}) + \epsilon
 \end{equation}
 
-where $f(X_{i})$ is an, unknown, but fixed function and $\epsilon$ is a random error term. The function $f(X_{i})$ represent the \emph{systematic information} that the variables $X_{i}$ give about $Y$.
+where $f(X_{i})$ is an, unknown, but fixed function and $\epsilon$ is a \emph{random error}\index{random error term} term. The function $f(X_{i})$ represent the \emph{systematic information}\index{systematic information} that the variables $X_{i}$ give about $Y$.
 
 <<echo=FALSE>>=
 # Loading the Advertising data
@@ -635,7 +635,137 @@ Flexibility will reduce \emph{Bias} but increase \emph{Variance}. This is the \e
 
 \subsection{The Classification Setting}
 
+When we do classification we can check the proportion of mistakes that we make when we apply our estimate $\hat{f}$ to the training observations:
+\begin{equation}
+  \frac{1}{n}\sum_{i=1}^{i=n}I(y_{i} \ne \hat{y}_{i})
+\label{eq:incorrect_classifications}
+\end{equation}
 
+where 
+\begin{itemize}
+  \item $\hat{y}_{i}$ is the predicted class label for the ith observation using $\hat{f}$
+  \item $I(y_{i} \ne \hat{y}_{i})$ is an indicator variable that is equal to 1 if we have an error ($y_{i} \ne \hat{y}_{i}$) and is equal to 0 when our classificaton is correct $(y_{i} = \hat{y}_{i})$
+\end{itemize}
+
+Equation \ref{eq:incorrect_classifications} computes the fraction of \emph{incorrect classifications} for the training set. It is the classification equivalent of $MSE_{train}$.
+
+But we are more interested in the fraction of incorrect classifications for the test set. 
+\begin{equation}
+  Ave\left( I(y_{0} \ne \hat{y}_{0}) \right)
+\end{equation}
+
+A good classifier is one for which the test error is smallest.
+
+\newthought{The Bayes Classifier} is a classifier that assigns each observation to \emph{the most likely class, given the predictor values}. A test observation with predictor vector $x_{0}$ is assigned to class $j$ for which the conditional probability
+\begin{equation}
+  P[Y=j|X=x_{0}] \quad is \quad maximum
+\end{equation}
+
+In a \emph{two-class problem} with two possible response values the \emph{Bayes Classifier} corresponds to predict class 1 if $P[Y=1|X=x_{0}>0.5]$, and to class 2 otherwise. It can be showns that the \emph{Bayes Classifier} will give the minimum test error rate (the \emph{Bayes error rate}). The \emph{Bayes error rate} is analogous to the \emph{irreducible error}. However, the main problem is that usually we do not know the conditional distribution of $Y$ given $X$!
+
+\newthought{K Nearest Neighbours (KNN)} is an alternative which tries to \emph{estimate} the conditional probability of $Y$ for given values of $X$, and then use this estimated conditional probability distribution to build an Bayes Classifier.
+
+Given a positive integer $K$ and \emph{a test observation} $x_{0}$ (one of the coordinates in the (x,y)-plane of Figure~\ref{fig:2KNN}), the KNN-classifier first indentifies the K points \emph{in the training set} (the open circles in Figure~\ref{fig:2KNN}) closest to $x_{0}$, represented by $\mathcal{N}_{0}$. It then estimates the conditional probability for class $j$ as the fraction of points in $\mathcal{N}_{0}$ that belong to class $j$. In this case the class is color (''red" or ''blue"). If the majority of the K training points has the class ''red/blue", the coordinate point is set to ''red/blue".
+\begin{equation}
+  P[Y=j|X=x_{0}]=\frac{1}{K}\sum_{i \in \mathcal{N}_{0}}I(y_{i}=j)
+\end{equation}
+Using this estimate of the conditional probability and then we apply the Bayes Classifier (Figure~\ref{fig:2KNN}).
+
+<<label=2KNN,fig=TRUE,include=FALSE, echo=FALSE>>=
+# generate 2N points, N in left upper corner, N in lower right corner of a square axa
+set.seed(2018)
+a <- 10 # side of the square
+N <- 50 # number of points in each half of the square
+pnt.red <- data.frame(x=runif(N, 0, a), y=0, kleur="red")
+pnt.red$y <- runif(N, pnt.red$x, a) # N points in the left up corner
+pnt.blue <- data.frame(x=runif(N, 0, a), y=0, kleur="blue") 
+pnt.blue$y <- runif(N, 0, pnt.blue$x) # N points in the left up corner
+pnt <- rbind(pnt.red, pnt.blue)
+JT.KNN <- function(K, NRx, NRy, a, train){
+  # K
+  # NRx number of points in raster along the x-axis
+  # NRy number of points in raster along the y-axis
+  raster <- data.frame(x=rep(seq(a/(2*NRx), a-a/(2*NRx), length.out = NRx),each=NRy),
+                     y=rep(seq(a/(2*NRy), a-a/(2*NRy), length.out = NRy),NRx), 
+                     kleur="black", 
+                     stringsAsFactors = FALSE)
+  for (i in seq(1:(NRx*NRy))) {
+    spotted <- FALSE
+    R <- a/10
+    step <- a/10
+    situation <- "toobig"
+    while (!spotted){
+      number_in_square <- sum(train$x > (raster$x[i] - R) & 
+                            train$x < (raster$x[i] + R) & 
+                            train$y > (raster$y[i] - R) & 
+                            train$y < (raster$y[i] + R))
+      number_in_square
+      if(number_in_square > K) {
+        if (situation=="toosmall") {step <- step/10}
+        situation <- "toobig"
+        R <- R - step}
+      if(number_in_square < K) {
+        if (situation=="toobig") {step <- step/10}
+        situation <- "toosmall"
+        R <- R + step}
+      if(number_in_square == K) {
+        ifelse(sum(train$kleur[train$x > (raster$x[i] - R) &
+                                train$x < (raster$x[i] + R) &
+                                train$y > (raster$y[i] - R) &
+                                train$y < (raster$y[i] + R)]=="red") > K/2, 
+               raster$kleur[i] <- "red", 
+               raster$kleur[i] <- "blue")
+        spotted=TRUE}
+   }
+  }
+  return(raster)
+}
+raster <- JT.KNN(K=3, NRx=50, NRy=50, a, pnt)
+ggplot() +
+  geom_point(data=pnt, aes(x=x,y=y,color=kleur), shape=1) +
+  geom_point(data=raster, aes(x=x, y=y, color=as.factor(kleur)), shape=20, size=0.25) +
+  labs(title="KNN classification of (x,y)-space based on given data points", x="x", y="y", subtitle="K=3") +
+  theme(legend.position = "none") +
+  JT.theme
+@
+
+\begin{figure}
+\includegraphics[width=0.75\textwidth]{ITSL-2KNN}
+\caption{Classification with K Nearest Neighbours}
+\label{fig:2KNN}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+<<label=2KNNbis,fig=TRUE,include=FALSE, echo=FALSE>>=
+raster <- JT.KNN(K=1, NRx=50, NRy=50, a, pnt)
+p1 <- ggplot() +
+  geom_point(data=pnt, aes(x=x,y=y,color=kleur), shape=1) +
+  geom_point(data=raster, aes(x=x, y=y, color=as.factor(kleur)), shape=20, size=0.25) +
+  labs(title="KNN classification of (x,y)-space based on given data points", x="x", y="y", subtitle="K=1") +
+  theme(legend.position = "none") +
+  JT.theme
+K <- 50
+raster <- JT.KNN(K=50, NRx=50, NRy=50, a, pnt)
+p2 <- ggplot() +
+  geom_point(data=pnt, aes(x=x,y=y,color=kleur), shape=1) +
+  geom_point(data=raster, aes(x=x, y=y, color=as.factor(kleur)), shape=20, size=0.25) +
+  labs(title="KNN classification of (x,y)-space based on given data points", x="x", y="y", subtitle="K=50") +
+  theme(legend.position = "none") +
+  JT.theme
+grid.arrange(p1, p2, nrow=1)
+@
+
+\begin{figure}
+\includegraphics[width=0.75\textwidth]{ITSL-2KNNbis}
+\caption{K=1 (very flexible) vs. K=50 (rigid)}
+\label{fig:2KNNbis}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+The critical element is \emph{the choice of K}. If we set $K=1$ we get a very flexible classifier, but it has a lot of variance: using another training set wil result in a completely different error rate. Setting $K=50$ will give us a classifier that is stable with regard to changing the training set but it has a high bias (Figure~\ref{fig:2KNNbis}). Again we meet the \emph{Bias-Variance trade-off} and while the training error will steadily dicline when we increase the flexibility (lower K) the test error will exhibit the typical U-shape. There are methods for finding the optimal value of K.
+
+\newpage
+\printindex
 
 \newpage
 \textbf{Thanks} \\
